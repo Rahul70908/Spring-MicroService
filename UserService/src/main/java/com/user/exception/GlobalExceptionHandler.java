@@ -5,14 +5,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler {
 	
 	@ExceptionHandler(value = Exception.class)
@@ -20,13 +20,20 @@ public class GlobalExceptionHandler {
 		exception.printStackTrace();
 		ApiResponse apiResponse = ApiResponse.builder().message(exception.getMessage())
 				.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+		return ResponseEntity.internalServerError().body(apiResponse);
+	}
+	
+	@ExceptionHandler(value = UserException.class)
+	public ResponseEntity<ApiResponse> handleException(UserException exception) {
+		log.error("UserException in User-Service");
+		exception.printStackTrace();
+		ApiResponse apiResponse = ApiResponse.builder().message(exception.getMessage())
+				.status(HttpStatus.BAD_REQUEST).build();
 		return ResponseEntity.badRequest().body(apiResponse);
 	}
 
 	@Getter
 	@Setter
-	@AllArgsConstructor
-	@NoArgsConstructor
 	@Builder
 	@ToString
 	static class ApiResponse {

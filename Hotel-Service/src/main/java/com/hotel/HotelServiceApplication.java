@@ -1,14 +1,13 @@
-package com.user;
+package com.hotel;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-//@EnableAutoConfiguration(exclude = DataSourceAutoConfiguration.class)
-public class UserService1Application {
+public class HotelServiceApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(UserService1Application.class, args);
+		SpringApplication.run(HotelServiceApplication.class, args);
 	}
 
 }
