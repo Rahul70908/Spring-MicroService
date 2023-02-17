@@ -67,4 +67,16 @@ public class RatingServiceImpl implements RatingService {
 		return responseMap;
 	}
 
+	@Override
+	public Map<String, Object> getAllRatingsByUserIds(List<Integer> userId) {
+		Map<String, Object> responseMap = Maps.newHashMap();
+		List<Rating> ratings;
+		Map<String, Object> ratingsMap = Maps.newHashMap();
+		for(Integer s: userId) {
+			ratings = ratingRepository.findByUserId(String.valueOf(s));
+			ratingsMap.put(String.valueOf(s), ratings);
+			responseMap.put("ratings", ratingsMap);
+		}
+		return ratingsMap;
+	}
 }

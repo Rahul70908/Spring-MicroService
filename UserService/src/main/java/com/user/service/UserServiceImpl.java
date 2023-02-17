@@ -1,8 +1,11 @@
 package com.user.service;
 
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.BeanUtils;
@@ -10,17 +13,28 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import com.user.dto.Rating;
 import com.user.dto.UserDto;
 import com.user.entity.User;
 import com.user.exception.UserException;
+import com.user.feign.FeignCall;
 import com.user.repository.UserRepository;
+
+import lombok.Data;
 
 @Service
 public class UserServiceImpl implements UserService {
 
 	@Autowired
 	UserRepository userRepository;
+
+	@Autowired
+	FeignCall feignCall;
+
+	@Autowired
+	ObjectMapper objectMapper;
 
 	@Override
 	public Map<String, Object> saveUser(UserDto userDto) {
@@ -41,16 +55,30 @@ public class UserServiceImpl implements UserService {
 	public Map<String, Object> getUserById(Long userId) {
 		Map<String, Object> responseMap = new HashMap<>();
 		User user = userRepository.findById(userId).orElseThrow(() -> new UserException("User Not Found!!"));
+		Map<String, Object> map = feignCall.getByUserId(String.valueOf(userId));
+		if (!map.isEmpty()) {
+			@SuppressWarnings("unchecked")
+			List<Rating> ratings = (List<Rating>) map.get("ratings");
+			user.setRatings(ratings);
+		}
 		responseMap.put("UserDetails", user);
 		responseMap.put("status", HttpStatus.OK);
 		return responseMap;
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	public Map<String, Object> getAllUsers() {
 		Map<String, Object> responseMap = Maps.newHashMap();
-		responseMap.put("status", HttpStatus.OK);
-		responseMap.put("userList", userRepository.findAll());
+		List<User> users = userRepository.findAll();
+		List<Long> userIds = users.stream().map(User::getUserId).collect(Collectors.toList());
+		String encodedUserIds = Base64.getEncoder().encodeToString(String.valueOf(userIds).getBytes());
+		Map<String, Object> map = feignCall.getAllRatingsByUserId(encodedUserIds);
+		if (!map.isEmpty()) {
+			for(User u : users)
+				u.setRatings((List<Rating>) map.get(String.valueOf(u.getUserId())));
+		}
+		responseMap.put("users", users);
 		return responseMap;
 	}
 
@@ -67,8 +95,7 @@ public class UserServiceImpl implements UserService {
 	public Map<String, Object> updateUser(UserDto userDto) {
 		Map<String, Object> responseMap = Maps.newHashMap();
 		User user = userRepository.findByEmail(userDto.getEmail());
-		if (ObjectUtils.isNotEmpty(userDto)
-				&& Optional.ofNullable(user).isPresent()) {
+		if (ObjectUtils.isNotEmpty(userDto) && Optional.ofNullable(user).isPresent()) {
 			BeanUtils.copyProperties(userDto, user);
 			userRepository.save(user);
 			responseMap.put("status", HttpStatus.OK);
@@ -77,5 +104,10 @@ public class UserServiceImpl implements UserService {
 			throw new UserException("User Not Found!!!");
 		}
 		return responseMap;
+	}
+
+	@Data
+	static class RatingList {
+		List<Rating> ratings;
 	}
 }

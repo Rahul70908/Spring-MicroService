@@ -22,6 +22,7 @@ public class RatingGlobalExceptionHandler {
 				ApiResponse.builder().status(HttpStatus.INTERNAL_SERVER_ERROR).message(exception.getMessage()).build());
 	}
 
+	@ExceptionHandler(value = RatingException.class)
 	public ResponseEntity<ApiResponse> handleRatingException(RatingException exception) {
 		log.error("Rating Exception in rating-service");
 		exception.printStackTrace();
