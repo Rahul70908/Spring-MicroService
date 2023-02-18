@@ -41,5 +41,5 @@ public class User {
 	@Column(name = "about", length = 50)
 	private String about;
 	@Transient
-	private List<Rating> ratings = new ArrayList<>();
+	private List<Rating> ratings = new ArrayList<>();	
 }

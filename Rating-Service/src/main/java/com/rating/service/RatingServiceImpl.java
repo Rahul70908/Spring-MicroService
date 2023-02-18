@@ -40,22 +40,14 @@ public class RatingServiceImpl implements RatingService {
 	}
 
 	@Override
-	public Map<String, Object> getByUserId(String userId) {
+	public List<Rating> getByUserId(String userId) {
 		List<Rating> ratings;
-		Map<String, Object> responseMap = Maps.newHashMap();
 		if (StringUtils.isEmpty(userId)) {
 			throw new RatingException("Rating Not Found!!!");
 		} else {
 			ratings = ratingRepository.findByUserId(userId);
-			if (!ratings.isEmpty()) {
-				responseMap.put("status", HttpStatus.OK);
-				responseMap.put("ratings", ratings);
-			} else {
-				responseMap.put("status", HttpStatus.NOT_FOUND);
-				responseMap.put("message", "No Data Found");
-			}
 		}
-		return responseMap;
+		return ratings;
 	}
 
 	@Override

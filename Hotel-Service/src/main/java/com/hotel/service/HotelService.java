@@ -12,6 +12,6 @@ public interface HotelService {
 	
 	List<Hotel> getAllHotels();
 	
-	Map<String, Object> getHotelById(String hotelName, String location);
+	Map<String, Object> getHotelById(String hotelId);
 	
 }

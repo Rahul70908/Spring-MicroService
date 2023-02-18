@@ -43,15 +43,13 @@ public class HotelServiceImpl implements HotelService {
 	}
 
 	@Override
-	public Map<String, Object> getHotelById(String hotelName, String location) {
+	public Map<String, Object> getHotelById(String hotelId) {
 		Map<String, Object> responseMap = Maps.newHashMap();
-		if (ObjectUtils.isEmpty(hotelName) || ObjectUtils.isEmpty(location)) {
+		if (ObjectUtils.isEmpty(hotelId)) {
 			throw new HotelServiceException("Required Fields can't be null!!!");
 		}
-		Hotel hotel = hotelRepository.findByNameAndLocation(hotelName, location);
-		if(ObjectUtils.isEmpty(hotel)) {
-			throw new HotelServiceException("Hotel Not Found!!!");			
-		}
+		Hotel hotel = hotelRepository.findById(Long.valueOf(hotelId))
+				.orElseThrow(() -> new HotelServiceException("Hotel Not Found!!!"));
 		responseMap.put("data", hotel);
 		responseMap.put("status", HttpStatus.OK);
 		return responseMap;

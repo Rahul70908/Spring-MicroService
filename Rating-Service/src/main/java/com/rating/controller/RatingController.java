@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.exc.StreamReadException;
 import com.fasterxml.jackson.databind.DatabindException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rating.dto.RatingDto;
+import com.rating.entity.Rating;
 import com.rating.service.RatingService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -48,9 +49,8 @@ public class RatingController {
 	}
 
 	@GetMapping("/ratingById")
-	public ResponseEntity<Map<String, Object>> getByUserId(@RequestParam String userId) {
-		Map<String, Object> responseMap = ratingService.getByUserId(userId);
-		return ResponseEntity.ok(responseMap);
+	public ResponseEntity<List<Rating>> getByUserId(@RequestParam String userId) {
+		return ResponseEntity.ok(ratingService.getByUserId(userId));
 	}
 
 	@GetMapping("/byhotelId")

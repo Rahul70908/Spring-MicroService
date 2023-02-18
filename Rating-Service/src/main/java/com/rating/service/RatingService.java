@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.rating.dto.RatingDto;
+import com.rating.entity.Rating;
 
 public interface RatingService {
 
@@ -11,7 +12,7 @@ public interface RatingService {
 	
 	Map<String, Object> getAllRating();
 	
-	Map<String, Object> getByUserId(String userId);
+	List<Rating> getByUserId(String userId);
 	
 	Map<String, Object> getAllByHotel(String hotelId);
 	

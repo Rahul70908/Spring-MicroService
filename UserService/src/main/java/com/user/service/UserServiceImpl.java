@@ -15,23 +15,30 @@ import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Maps;
+import com.user.dto.Hotel;
 import com.user.dto.Rating;
 import com.user.dto.UserDto;
 import com.user.entity.User;
 import com.user.exception.UserException;
-import com.user.feign.FeignCall;
+import com.user.feign.HotelFeign;
+import com.user.feign.RatingFeign;
 import com.user.repository.UserRepository;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 public class UserServiceImpl implements UserService {
 
 	@Autowired
 	UserRepository userRepository;
 
 	@Autowired
-	FeignCall feignCall;
+	RatingFeign ratingFeign;
+
+	@Autowired
+	HotelFeign hotelFeign;
 
 	@Autowired
 	ObjectMapper objectMapper;
@@ -55,12 +62,14 @@ public class UserServiceImpl implements UserService {
 	public Map<String, Object> getUserById(Long userId) {
 		Map<String, Object> responseMap = new HashMap<>();
 		User user = userRepository.findById(userId).orElseThrow(() -> new UserException("User Not Found!!"));
-		Map<String, Object> map = feignCall.getByUserId(String.valueOf(userId));
-		if (!map.isEmpty()) {
-			@SuppressWarnings("unchecked")
-			List<Rating> ratings = (List<Rating>) map.get("ratings");
-			user.setRatings(ratings);
+		List<Rating> ratings = ratingFeign.getByUserId(String.valueOf(userId));
+		Hotel hotel = null;
+		for (Rating r : ratings) {
+			Map<String, Object> hotelById = hotelFeign.getHotelById(r.getHotelId());
+			hotel = objectMapper.convertValue(hotelById.get("data"), Hotel.class);
+			r.setHotel(hotel);
 		}
+		user.setRatings(ratings);
 		responseMap.put("UserDetails", user);
 		responseMap.put("status", HttpStatus.OK);
 		return responseMap;
@@ -73,9 +82,9 @@ public class UserServiceImpl implements UserService {
 		List<User> users = userRepository.findAll();
 		List<Long> userIds = users.stream().map(User::getUserId).collect(Collectors.toList());
 		String encodedUserIds = Base64.getEncoder().encodeToString(String.valueOf(userIds).getBytes());
-		Map<String, Object> map = feignCall.getAllRatingsByUserId(encodedUserIds);
+		Map<String, Object> map = ratingFeign.getAllRatingsByUserId(encodedUserIds);
 		if (!map.isEmpty()) {
-			for(User u : users)
+			for (User u : users)
 				u.setRatings((List<Rating>) map.get(String.valueOf(u.getUserId())));
 		}
 		responseMap.put("users", users);
@@ -100,14 +109,13 @@ public class UserServiceImpl implements UserService {
 			userRepository.save(user);
 			responseMap.put("status", HttpStatus.OK);
 			responseMap.put("message", "User Update SuccessFully!!");
-		} else {
+		} else
 			throw new UserException("User Not Found!!!");
-		}
 		return responseMap;
 	}
 
 	@Data
-	static class RatingList {
+	static class r {
 		List<Rating> ratings;
 	}
 }

@@ -46,11 +46,10 @@ public class HotelController {
 	}
 
 	@GetMapping("/getById")
-	public ResponseEntity<Map<String, Object>> getHotelById(@RequestParam("name") String hotelname,
-			@RequestParam("location") String location) {
+	public ResponseEntity<Map<String, Object>> getHotelById(@RequestParam("id") String hotelId) {
 		Map<String, Object> responseMap = Maps.newHashMap();
 		try {
-			responseMap = hotelService.getHotelById(hotelname, location);
+			responseMap = hotelService.getHotelById(hotelId);
 		} catch (HotelServiceException e) {
 			log.error("Exception in Fetching Hotel Detals");
 			e.printStackTrace();
